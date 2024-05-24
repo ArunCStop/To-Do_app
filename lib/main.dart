@@ -13,7 +13,7 @@ class ToDoApp extends StatefulWidget {
 
 class _ToDoAppState extends State<ToDoApp> {
   var _tasks = <Map<String, String>>[];
-  final _taskCheck = <bool>[];
+  var _taskCheck = <bool>[];
   final _textFieldController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _isDarkMode = false;
@@ -26,15 +26,23 @@ class _ToDoAppState extends State<ToDoApp> {
 
   Future<void> _saveTasks() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('tasks', _tasks.cast<String>());
+    prefs.setStringList(
+        'tasks', _tasks.map((task) => jsonEncode(task)).toList());
+    prefs.setStringList(
+        'taskCheck', _taskCheck.map((check) => check.toString()).toList());
   }
 
   Future<void> _loadTasks() async {
     final prefs = await SharedPreferences.getInstance();
     final tasks = prefs.getStringList('tasks');
-    if (tasks != null) {
+    final taskCheck = prefs.getStringList('taskCheck');
+    if (tasks != null && taskCheck != null) {
       setState(() {
-        _tasks = tasks.cast<Map<String, String>>();
+        _tasks = tasks
+            .map((task) => Map<String, String>.from(jsonDecode(task)))
+            .toList();
+        _taskCheck =
+            taskCheck.map((check) => check.toLowerCase() == 'true').toList();
       });
     }
   }
@@ -140,8 +148,8 @@ class _ToDoAppState extends State<ToDoApp> {
                           setState(() {
                             _tasks.removeAt(index);
                             _taskCheck.removeAt(index);
+                            _saveTasks();
                           });
-                          _saveTasks();
                         } else if (value == 'Edit') {
                           _textFieldController.text =
                               _tasks[index]['name'] ?? '';
@@ -153,19 +161,23 @@ class _ToDoAppState extends State<ToDoApp> {
                             builder: (BuildContext context) {
                               return AlertDialog(
                                 title: const Text('Edit task'),
-                                content: Column(
-                                  children: <Widget>[
-                                    TextField(
-                                      controller: _textFieldController,
-                                      decoration: const InputDecoration(
-                                          hintText: "Task name"),
-                                    ),
-                                    TextField(
-                                      controller: _descriptionController,
-                                      decoration: const InputDecoration(
-                                          hintText: "Task description"),
-                                    ),
-                                  ],
+                                content: Container(
+                                  width: MediaQuery.of(context).size.width * 0.8,
+                                  height: MediaQuery.of(context).size.height * 0.3,
+                                  child: Column(
+                                    children: <Widget>[
+                                      TextField(
+                                        controller: _textFieldController,
+                                        decoration: const InputDecoration(
+                                            hintText: "Task name"),
+                                      ),
+                                      TextField(
+                                        controller: _descriptionController,
+                                        decoration: const InputDecoration(
+                                            hintText: "Task description"),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 actions: <Widget>[
                                   TextButton(
@@ -183,11 +195,11 @@ class _ToDoAppState extends State<ToDoApp> {
                                           'description':
                                               _descriptionController.text,
                                         };
+                                        _saveTasks();
                                       });
                                       _textFieldController.clear();
                                       _descriptionController.clear();
                                       Navigator.of(context).pop();
-                                      _saveTasks();
                                     },
                                   ),
                                 ],
@@ -210,7 +222,9 @@ class _ToDoAppState extends State<ToDoApp> {
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: const Text('Add task'),
-                  content: SingleChildScrollView(
+                  content: Container(
+                    width: MediaQuery.of(context).size.width *0.8,
+                    height: MediaQuery.of(context).size.height * 0.3,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                           maxHeight: MediaQuery.of(context).size.height * 0.5,
