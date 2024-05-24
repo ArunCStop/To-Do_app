@@ -95,11 +95,9 @@ class _ToDoAppState extends State<ToDoApp> {
                   decoration: BoxDecoration(
                     color: _isDarkMode ? Colors.black : Colors.white,
                     boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.black.withOpacity(0.5)
-                            : Colors.grey.withOpacity(0.5),
+                      BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.5) : Colors.grey.withOpacity(0.5),
                         spreadRadius: 5,
+                        blurStyle: BlurStyle.outer,
                         blurRadius: 7,
                         offset: const Offset(0, 3),
                       ),
@@ -151,10 +149,8 @@ class _ToDoAppState extends State<ToDoApp> {
                             _saveTasks();
                           });
                         } else if (value == 'Edit') {
-                          _textFieldController.text =
-                              _tasks[index]['name'] ?? '';
-                          _descriptionController.text =
-                              _tasks[index]['description'] ?? '';
+                          _textFieldController.text = _tasks[index]['name'] ?? '';
+                          _descriptionController.text = _tasks[index]['description'] ?? '';
 
                           showDialog(
                             context: context,
